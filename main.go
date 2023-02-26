@@ -1,23 +1,75 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+
+	"golang.org/x/tour/tree"
+)
+
+//Exercise: Equivalent Binary Trees
+
+// Walk walks the tree t sending all values
+// from the tree to the channel ch.
+func Walk(t *tree.Tree, ch chan int) {
+	if t == nil {
+		return
+	}
+	Walk(t.Left, ch)
+	ch <-t.Value
+	Walk(t.Right, ch)
+}
+
+// Same determines whether the trees
+// t1 and t2 contain the same values.
+func Same(t1, t2 *tree.Tree) bool {
+	ch1:=make(chan int)
+	ch2:=make(chan int)
+	readAll:=make(chan bool)
+
+	go func() {
+		Walk(t1, ch1)
+		close(ch1)
+	}()
+	go func() {
+		Walk(t2, ch2)
+		close(ch2)
+	}()
+
+	go func() {
+		for {
+			if num1, ok1 := <- ch1; ok1 {
+				if num2, ok2 := <- ch2; ok2 {
+					if num1 == num2 {
+						continue
+					} else {
+						readAll <- false
+						break
+					}
+				} else {
+					readAll <- false
+					break
+				}
+			} else {
+				if _, ok2 := <- ch2; ok2 {
+					readAll <- false
+					break
+				} else {
+					readAll <- true
+					break
+				}
+			}
+		}
+		close(readAll)
+	}()
+
+	if res, ok := <- readAll; ok {
+		return res
+	} else {
+		//error
+		return false
+	}
+}
 
 func main() {
-	// slice1:=make([]int, 5, 20)
-	// var test []int = make([]int, 3)
-	// test = slice1[:]
-	// //copy(test, slice1)
-	// slice2:=append(slice1, 88)
-	// fmt.Println(slice1, slice2)
-	// fmt.Printf("%p %p\n", slice1, slice2)
-	// fmt.Println(len(slice1), len(slice2))
-	// slice2 = append(slice2, 77)
-
-	// fmt.Println(len(slice1), len(slice2))
-	// fmt.Printf("%p %p\n", test, slice1)
-	// fmt.Println(test)
-	array:=[]int{0,1,2}
-	slice:=make([]int, 3)
-	slice[0] = array[0]
-	fmt.Printf("%p %p\n", slice, array)
+	fmt.Println(Same(tree.New(100), tree.New(100)))
 }
