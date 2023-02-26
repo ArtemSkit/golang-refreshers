@@ -21,7 +21,7 @@ func Walk(t *tree.Tree, ch chan int) {
 
 // Same determines whether the trees
 // t1 and t2 contain the same values.
-func Same(t1, t2 *tree.Tree) bool {
+func Same(t1, t2 *tree.Tree) (bool, error) {
 	ch1:=make(chan int)
 	ch2:=make(chan int)
 	readAll:=make(chan bool)
@@ -63,13 +63,16 @@ func Same(t1, t2 *tree.Tree) bool {
 	}()
 
 	if res, ok := <- readAll; ok {
-		return res
+		return res, nil
 	} else {
-		//error
-		return false
+		return false, fmt.Errorf("channel that is used to signal the result was closed before the result was read")
 	}
 }
 
 func main() {
-	fmt.Println(Same(tree.New(100), tree.New(100)))
+	if res, err := Same(tree.New(100), tree.New(100)); err == nil {
+		fmt.Println(res)
+	} else {
+		fmt.Println(err)
+	}
 }
