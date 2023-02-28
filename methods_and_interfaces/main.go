@@ -132,4 +132,7 @@ func main() {
 	callValueMethodOnInterface(point)
 	// cannot use val (variable of type TestStruct) as PointerMethodCaller value in argument to callPointerMethodOnInterface: TestStruct does not implement PointerMethodCaller (method pointerMethod has pointer receiver)
 	// callPointerMethodOnInterface(val)
+
+	fmt.Print("\n\n\n")
+	TestInterfaceAssignment()
 }
